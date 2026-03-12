@@ -1,0 +1,19 @@
+# SigLIP2 only (no DINOv3)
+root_path: ''
+
+load_cache: False
+load_pre_feat: True # FIXME 第一次跑要改为False
+
+search_hp: True # hyper parameter 超参数 hp
+search_scale: [10, 10]
+search_step: [200, 20]
+init_beta: 1
+init_alpha: 1.17
+
+dataset: 'food101'
+shots: 4 # 2, 4, 8, 16
+use_siglip_only: True
+siglip_model: 'google/siglip2-base-patch16-224'
+
+augment_epoch: 10
+train_epoch: 20

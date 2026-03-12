@@ -1,0 +1,15 @@
+# dataset
+food-101/
+
+# python cache
+__pycache__/
+*.pyc
+
+# logs
+*.log
+
+# model weights
+*.pt
+*.pth
+*.ckpt
+*.bin
