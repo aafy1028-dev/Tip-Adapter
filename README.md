@@ -1,77 +1,252 @@
-# Tip-Adapter: Training-free Adaption of CLIP for Few-shot Classification
-Official implementation of ['Tip-Adapter: Training-free Adaption of CLIP for Few-shot Classification'](https://arxiv.org/pdf/2207.09519.pdf).
+# Tip-Adapter-Dual
+Dual-Encoder Extension of Tip-Adapter for Few-shot Image Classification
 
-The paper has been accepted by **ECCV 2022**.
+This project extends the original **Tip-Adapter** framework by introducing a **dual-encoder architecture** that combines:
 
-## News
-* Our latest work, [CaFo](https://arxiv.org/pdf/2303.02151.pdf), is based on Tip-Adapter and accepted by **CVPR 2023** 🔥. Please refer [here](https://github.com/ZrrSkywalker/CaFo) for the code.
+- SigLIP2 Vision Encoder
+- DINOv3 Vision Encoder
 
-## Introduction
+The extracted features from both encoders are concatenated to improve representation ability for **few-shot image classification** and **open-set recognition**.
 
-Tip-Adapter is a training-free adaption method for CLIP to conduct few-shot classification, which not only inherits the training-free advantage of zero-shot CLIP but also performs comparably to those training-required approaches. Tip-Adapter constructs the adapter via a key-value cache model from the few-shot training set, and updates the prior knowledge encoded in CLIP by feature retrieval. On top of that, the performance of Tip-Adapter can be further boosted to be state-of-the-art by fine-tuning the cache model for only 10x fewer epochs than existing approaches, which is both effective and efficient.  
+The implementation is based on the official Tip-Adapter repository.
 
-<div align="center">
-  <img width=900 src="cache_model.png"/>
-</div>
+---
 
-## Requirements
-### Installation
-Create a conda environment and install dependencies:
+# Paper
+
+Original Paper:
+
+Tip-Adapter: Training-free Adaption of CLIP for Few-shot Classification  
+ECCV 2022
+
+Paper link:
+
+https://arxiv.org/pdf/2207.09519.pdf
+
+---
+
+# Method Overview
+
+Tip-Adapter is a **training-free adaptation method** for CLIP to perform few-shot classification using a **key-value cache model**.
+
+Compared with traditional fine-tuning approaches, Tip-Adapter:
+
+- avoids full model training
+- uses cached features for classification
+- achieves competitive performance with significantly lower training cost
+
+This project extends the original framework with **dual encoder feature extraction**.
+
+### Dual Encoder Pipeline
+
+```
+
+Image
+│
+├── SigLIP2 Encoder
+│
+├── DINOv3 Encoder
+│
+Feature Concatenation
+│
+Tip-Adapter Cache Model
+│
+Few-shot Classification
+
+```
+
+The final representation is:
+
+```
+
+Feature = Concat( SigLIP2(image), DINOv3(image) )
+
+```
+
+---
+
+# Project Structure
+
+```
+
+Tip-Adapter
+│
+├ configs
+│   ├ food101_dual.yaml
+│   ├ food101_siglip.yaml
+│
+├ models
+│   ├ **init**.py
+│   └ dual_encoder.py
+│
+├ main.py
+├ utils.py
+├ requirements.txt
+└ README.md
+
+````
+
+Main components:
+
+| File | Description |
+|-----|-------------|
+| main.py | Main training / evaluation script |
+| dual_encoder.py | Dual encoder implementation |
+| utils.py | Utility functions |
+| configs/ | Experiment configuration files |
+
+---
+
+# Installation
+
+Clone repository
+
 ```bash
-git clone https://github.com/gaopengcuhk/Tip-Adapter.git
+git clone https://github.com/aafy1028-dev/Tip-Adapter.git
 cd Tip-Adapter
+````
 
-conda create -n tip_adapter python=3.7
+Create conda environment
+
+```bash
+conda create -n tip_adapter python=3.10
 conda activate tip_adapter
+```
 
+Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# Install the according versions of torch and torchvision
+Install PyTorch
+
+```bash
 conda install pytorch torchvision cudatoolkit
 ```
 
-### Dataset
-Follow [DATASET.md](https://github.com/gaopengcuhk/Tip-Adapter/blob/main/DATASET.md) to install ImageNet and other 10 datasets referring to CoOp.
+---
 
-## Get Started
-### Configs
-The running configurations can be modified in `configs/dataset.yaml`, including shot numbers, visual encoders, and hyperparamters. 
+# Dataset
 
-For simplicity, we provide the hyperparamters achieving the overall best performance on 1\~16 shots for a dataset, which accord with the scores reported in the paper. If respectively tuned for different shot numbers, the 1\~16-shot performance can be further improved. You can edit the `search_scale`, `search_step`, `init_beta` and `init_alpha` for fine-grained tuning.
+This project uses the **Food-101 dataset**.
 
-Note that the default `load_cache` and `load_pre_feat` are `False` for the first running, which will store the cache model and val/test features in `configs/dataset/`. For later running, they can be set as `True` for faster hyperparamters tuning.
+Download dataset:
 
-### Numerical Results
-We provide Tip-Adapter's **numerical results** in Figure 4 and 5 of the paper at [exp.log](https://github.com/gaopengcuhk/Tip-Adapter/blob/main/exp.log).
+[https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/](https://data.vision.ee.ethz.ch/cvl/datasets_extra/food-101/)
 
- CLIP-Adapter's numerical results are also updated for comparison.
+After downloading, place the dataset under:
 
-### Running
-For ImageNet dataset:
-```bash
-CUDA_VISIBLE_DEVICES=0 python main_imagenet.py --config configs/imagenet.yaml
 ```
-For other 10 datasets:
-```bash
-CUDA_VISIBLE_DEVICES=0 python main.py --config configs/dataset.yaml
+Tip-Adapter/food-101/
 ```
-The fine-tuning of Tip-Adapter-F will be automatically conducted after the training-free Tip-Adapter.
 
-## Contributors
-[Renrui Zhang](https://github.com/ZrrSkywalker), Peng Gao
+Dataset structure:
 
-## Acknowledgement
-This repo benefits from [CLIP](https://github.com/openai/CLIP), [CoOp](https://github.com/KaiyangZhou/Dassl.pytorch) and [CLIP-Adapter](https://github.com/gaopengcuhk/CLIP-Adapter). Thanks for their wonderful works.
+```
+food-101
+│
+├ images
+├ meta
+├ train.txt
+└ test.txt
+```
 
-## Citation
+---
+
+# Running Experiments
+
+Run the dual encoder experiment:
+
 ```bash
+python main.py --config configs/food101_dual.yaml
+```
+
+Example:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python main.py --config configs/food101_dual.yaml
+```
+
+---
+
+# Key Modifications
+
+Compared with the original Tip-Adapter repository:
+
+• Added **DualEncoder module**
+
+• Added **SigLIP2 feature extraction**
+
+• Added **DINOv3 feature extraction**
+
+• Added new configuration files
+
+• Improved feature representation using encoder fusion
+
+---
+
+# Results
+
+Experimental results depend on:
+
+* encoder architecture
+* dataset shots
+* hyperparameters
+
+Users can modify configuration files in:
+
+```
+configs/
+```
+
+to perform different experiments.
+
+---
+
+# Acknowledgement
+
+This project is built upon the original Tip-Adapter repository:
+
+[https://github.com/gaopengcuhk/Tip-Adapter](https://github.com/gaopengcuhk/Tip-Adapter)
+
+We thank the authors for their excellent work.
+
+This project also benefits from the following works:
+
+* CLIP
+* DINOv3
+* SigLIP
+* CLIP-Adapter
+
+---
+
+# Citation
+
+If you use this project, please cite the original Tip-Adapter paper.
+
+```
 @article{zhang2021tip,
-  title={Tip-Adapter: Training-free CLIP-Adapter for Better Vision-Language Modeling},
-  author={Zhang, Renrui and Fang, Rongyao and Gao, Peng and Zhang, Wei and Li, Kunchang and Dai, Jifeng and Qiao, Yu and Li, Hongsheng},
-  journal={arXiv preprint arXiv:2111.03930},
-  year={2021}
+title={Tip-Adapter: Training-free CLIP-Adapter for Better Vision-Language Modeling},
+author={Zhang, Renrui and Fang, Rongyao and Gao, Peng and Zhang, Wei and Li, Kunchang and Dai, Jifeng and Qiao, Yu and Li, Hongsheng},
+journal={arXiv preprint arXiv:2111.03930},
+year={2021}
 }
 ```
 
-## Contact
-If you have any question about this project, please feel free to contact zhangrenrui@pjlab.org.cn and gaopeng@pjlab.org.cn.
+---
+
+# Author
+
+GitHub: [https://github.com/aafy1028-dev](https://github.com/aafy1028-dev)
+
+---
+
+# License
+
+This project follows the license of the original Tip-Adapter repository.
+
+````
+
+---
+
